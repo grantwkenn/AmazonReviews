@@ -62,10 +62,12 @@ def sortCSV (csv_path, target_path):
 
             else:
                 score = row[7]
+                score = score[0]
+
                 row = rowToString(row)
                 if score == str(1):
                     file_one.write(row)
-
+                    
                 elif score == str(2):
                     file_two.write(row)
 
@@ -77,6 +79,7 @@ def sortCSV (csv_path, target_path):
 
                 elif score == str(5):
                     file_five.write(row)
+
     print("Finished Sorting " + csv_path)
 
 
