@@ -150,7 +150,7 @@ def testDataset(classifier, testing_feature, data_type):
 
 def plotConfusionMatrix(classifier, test_vector, test_y):
     predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 3)
-    scikitplot.metrics.plot_confusion_matrix(predictions, test_y.ravel(), normalize=True)
+    scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
     matplotlib.pyplot.show()
   
 
