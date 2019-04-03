@@ -14,6 +14,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
 
 from sklearn.model_selection import cross_val_predict
 
@@ -39,8 +40,8 @@ classifiers = [
     ("svc2" , SVC(kernel="linear", C=0.025)),
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
     ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
-    ("mlp" , MLPClassifier(alpha=1))
-    #("nb" , GaussianNB())
+    ("mlp" , MLPClassifier(alpha=1)),
+    ("nb" , MultinomialNB())
 ]
 
 #possible csv
@@ -67,7 +68,7 @@ star_label = "star_rating"
 testing_features = ["review_body"]
 testing_labels = star_label
 selected_dataset = video_game_data
-selected_classifiers = ["mlp", "svc2"]
+selected_classifiers = ["nb", "svc2"]
 testing_types = ["boolean"]
 
 plot_confusion_matrix = True
