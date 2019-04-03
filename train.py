@@ -67,7 +67,7 @@ star_label = "star_rating"
 testing_features = ["review_body"]
 testing_labels = star_label
 selected_dataset = video_game_data
-testing_classifiers = ["svc"]
+selected_classifiers = ["mlp", "svc2"]
 testing_types = ["boolean"]
 
 plot_confusion_matrix = True
@@ -80,6 +80,10 @@ use_all_types = True
 ############################################################
 # END CONFIGURATION SET UP
 ############################################################
+testing_classifiers = []
+
+for classifier in selected_classifiers:
+    testing_classifiers.append(findClassifier(classifier))
 
 if use_all_features:
     testing_features = features
