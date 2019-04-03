@@ -1,6 +1,8 @@
 import csv
 import pandas as pd
 import string
+import matplotlib.pyplot
+import scikitplot
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
@@ -12,6 +14,8 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
+
+from sklearn.model_selection import cross_val_predict
 
 #TODO helpful_votes, total_votes, vine, verified_purchase MAY BE USED AS WEIGHTS
 #TODO case, stem, stopwords
@@ -59,6 +63,7 @@ testing_label = star_label
 selected_dataset = video_game_data
 classifier_choice = "svc"
 binary_classification = False
+plot_confusion_matrix = True
 
 #use all options
 use_all_features = True
@@ -111,10 +116,18 @@ def testDataset():
 
     clf.fit(train_vector, train_y.ravel())
     scores = clf.score(test_vector, test_y)
+
     print()
     print( "Classifier: " + classifier_choice + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
     print( "Score: " +  ": " + str(scores))
-    
+
+    if plot_confusion_matrix:
+        plotConfusionMatrix(test_vector, test_y)
+
+def plotConfusionMatrix(test_vector, test_y):
+    predictions = cross_val_predict(clf, test_vector, test_y.ravel(), cv = 5)
+    scikitplot.metrics.plot_confusion_matrix(predictions, test_y.ravel(), normalize=True)
+    matplotlib.pyplot.show()
 
 def test_all_classifiers():
     global classifier_choice
