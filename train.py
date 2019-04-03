@@ -21,7 +21,6 @@ from sklearn.naive_bayes import GaussianNB
 ###############################################################
 # BEGIN CONFIGURATION SETUP 
 ###############################################################
-
 def findClassifier (classifier_name):
     for element in classifiers:
         if element[0] == classifier_name:
@@ -58,11 +57,15 @@ star_label = "star_rating"
 testing_feature = "review_body"
 testing_label = star_label
 selected_dataset = video_game_data
+classifier_choice = "svc"
 binary_classification = False
 
+#use all options
+use_all_features = True
 use_all_classifiers = True
-classifier_choice = "svc"
+test_binary_plus_catagory = True
 
+clf = findClassifier(classifier_choice)
 
 ############################################################
 # END CONFIGURATION SET UP
@@ -108,18 +111,46 @@ def testDataset():
 
     clf.fit(train_vector, train_y.ravel())
     scores = clf.score(test_vector, test_y)
-    print( classifier_choice + ": " + str(scores))
+    print()
+    print( "Classifier: " + classifier_choice + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
+    print( "Score: " +  ": " + str(scores))
+    
+
+def test_all_classifiers():
+    global classifier_choice
+    global clf
+    for classifier in classifiers:
+        classifier_choice = classifier[0]
+        clf = classifier[1]
+        testDataset()
+
+def test_all():
+    global binary_classification
+    binary_classification = False
+    test_all_classifiers()
+    binary_classification = True
+    test_all_classifiers()
+
+def test_binary_plus_catagory():
+    global binary_classification
+    binary_classification = False
+    testDataset()
+    binary_classification = True
+    testDataset()
 
 
 #########################################################
 # RUN 
 #########################################################
 
-if use_all_classifiers:
-    for classifier in classifiers:
-        classifier_choice = classifier[0]
-        clf = classifier[1]
-        testDataset()
+if test_binary_plus_catagory and use_all_classifiers:
+    test_all()
+
+elif use_all_classifiers:
+    test_all_classifiers()
+
+elif test_binary_plus_catagory:
+    test_binary_plus_catagory()
+
 else:
-    clf = findClassifier(classifier_choice)
     testDataset()
