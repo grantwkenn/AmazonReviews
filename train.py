@@ -28,7 +28,7 @@ from sklearn.model_selection import cross_val_predict
 def findClassifier (classifier_name):
     for element in classifiers:
         if element[0] == classifier_name:
-            return element[1]
+            return element
     print("NO VALID CLASSIFIER CHOSEN!")
     quit()
 
@@ -39,7 +39,7 @@ classifiers = [
     ("svc2" , SVC(kernel="linear", C=0.025)),
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
     ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
-    ("mlp" , MLPClassifier(alpha=1)),
+    ("mlp" , MLPClassifier(alpha=1))
     #("nb" , GaussianNB())
 ]
 
@@ -49,32 +49,47 @@ kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 
 #possible features
 features = [
-    "review headline",
-    "review_body",
-    "review_combined" #TODO combine these
+    "review_headline",
+    "review_body"
+    #"review_combined" #TODO combine these
+]
+
+#possible types of classification
+catagory_types = [
+    "boolean",
+    "catagories"
 ]
 
 #possible labels
 star_label = "star_rating"
 
 #features being selected
-testing_feature = "review_body"
-testing_label = star_label
+testing_features = ["review_body"]
+testing_labels = star_label
 selected_dataset = video_game_data
-classifier_choice = "svc"
-binary_classification = False
+testing_classifiers = ["svc"]
+testing_types = ["boolean"]
+
 plot_confusion_matrix = True
 
 #use all options
 use_all_features = True
 use_all_classifiers = True
-test_binary_plus_catagory = True
-
-clf = findClassifier(classifier_choice)
+use_all_types = True
 
 ############################################################
 # END CONFIGURATION SET UP
 ############################################################
+
+if use_all_features:
+    testing_features = features
+
+if use_all_classifiers:
+    testing_classifiers = classifiers
+
+if use_all_types:
+    testing_types = catagory_types
+
 
 
 
@@ -82,7 +97,15 @@ clf = findClassifier(classifier_choice)
 #Generate Dataset, Undersample, Test
 ##########################################################
 
-def testDataset():
+def testDataset(classifier, testing_feature, data_type):
+    classifier_name = classifier[0]
+    classifier = classifier[1]
+    
+    if ( data_type == "boolean" ):
+        binary_classification = True
+    else:
+        binary_classification = False
+
     #input data from CSV file
     input_data = pd.read_csv(selected_dataset)
 
@@ -111,59 +134,31 @@ def testDataset():
     vectorizer = CountVectorizer(token_pattern=r'\b\w+\b')
 
 
-    train_vector = vectorizer.fit_transform(train_X['review_body'])
-    test_vector = vectorizer.transform(test_X['review_body'])
+    train_vector = vectorizer.fit_transform(train_X[testing_feature])
+    test_vector = vectorizer.transform(test_X[testing_feature])
 
-    clf.fit(train_vector, train_y.ravel())
-    scores = clf.score(test_vector, test_y)
+    classifier.fit(train_vector, train_y.ravel())
+    scores = classifier.score(test_vector, test_y)
 
     print()
-    print( "Classifier: " + classifier_choice + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
+    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
     print( "Score: " +  ": " + str(scores))
 
     if plot_confusion_matrix:
-        plotConfusionMatrix(test_vector, test_y)
+        plotConfusionMatrix(classifier, test_vector, test_y)
 
-def plotConfusionMatrix(test_vector, test_y):
-    predictions = cross_val_predict(clf, test_vector, test_y.ravel(), cv = 5)
+
+def plotConfusionMatrix(classifier, test_vector, test_y):
+    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 3)
     scikitplot.metrics.plot_confusion_matrix(predictions, test_y.ravel(), normalize=True)
     matplotlib.pyplot.show()
-
-def test_all_classifiers():
-    global classifier_choice
-    global clf
-    for classifier in classifiers:
-        classifier_choice = classifier[0]
-        clf = classifier[1]
-        testDataset()
-
-def test_all():
-    global binary_classification
-    binary_classification = False
-    test_all_classifiers()
-    binary_classification = True
-    test_all_classifiers()
-
-def test_binary_plus_catagory():
-    global binary_classification
-    binary_classification = False
-    testDataset()
-    binary_classification = True
-    testDataset()
-
+  
 
 #########################################################
 # RUN 
 #########################################################
 
-if test_binary_plus_catagory and use_all_classifiers:
-    test_all()
-
-elif use_all_classifiers:
-    test_all_classifiers()
-
-elif test_binary_plus_catagory:
-    test_binary_plus_catagory()
-
-else:
-    testDataset()
+for classifier in testing_classifiers:
+    for feature in testing_features:
+        for data_type in testing_types:
+            testDataset(classifier, feature, data_type)
