@@ -1,11 +1,17 @@
 import csv
 import pandas as pd
+import numpy as np
 import string
 import matplotlib.pyplot
 import scikitplot
 
+from sklearn.metrics import classification_report
+from sklearn.metrics import recall_score
+from sklearn.model_selection import cross_validate
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.svm import NuSVC
 from sklearn.linear_model import LogisticRegression
@@ -45,12 +51,13 @@ classifiers = [
 ]
 
 #possible csv
+vg_trunc_20k = "Amazon Review Datasets/truncations/vg_trunc_20k.csv"
 video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
 kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 
 #possible features
 features = [
-    "review_headline",
+    #"review_headline",
     "review_body"
     #"review_combined" #TODO combine these
 ]
@@ -67,15 +74,15 @@ star_label = "star_rating"
 #features being selected
 testing_features = ["review_body"]
 testing_labels = star_label
-selected_dataset = video_game_data
-selected_classifiers = ["nb", "svc2"]
+selected_dataset = vg_trunc_20k
+selected_classifiers = ["nb"]
 testing_types = ["boolean"]
 
 plot_confusion_matrix = True
 
 #use all options
 use_all_features = True
-use_all_classifiers = True
+use_all_classifiers = False
 use_all_types = True
 
 ############################################################
@@ -94,9 +101,6 @@ if use_all_classifiers:
 
 if use_all_types:
     testing_types = catagory_types
-
-
-
 
 ##########################################################
 #Generate Dataset, Undersample, Test
@@ -127,37 +131,42 @@ def testDataset(classifier, testing_feature, data_type):
     X = pd.DataFrame(dataset, columns = [testing_feature])
     y = pd.DataFrame(dataset, columns = ["label"])
 
+    #random undersample
     rus = RandomUnderSampler(random_state=13)
     X_res, y_res = rus.fit_resample(X, y)
+    X_res = pd.DataFrame(X_res, columns = [testing_feature])
+    
+    #choose vectorizer
+    vectorizer = TfidfVectorizer(token_pattern=r'\b\w+\b')
+    #vectorizer = CountVectorizer(token_pattern=r'\b\w+\b')
 
+    #vectorize document
+    data_vector = vectorizer.fit_transform(X_res[testing_feature])
 
-    X1 = pd.DataFrame(X_res, columns = [testing_feature])
+    scoring = ['precision_macro', 'recall_macro', 'f1_macro']
 
-    train_X, test_X, train_y, test_y = train_test_split(X1, y_res, random_state=50)
-    train_y=train_y.astype('int')
-
-    vectorizer = CountVectorizer(token_pattern=r'\b\w+\b')
-
-
-    train_vector = vectorizer.fit_transform(train_X[testing_feature])
-    test_vector = vectorizer.transform(test_X[testing_feature])
-
-    classifier.fit(train_vector, train_y.ravel())
-    scores = classifier.score(test_vector, test_y)
+    scores = cross_validate(classifier, data_vector, y_res.ravel(), cv = 10, scoring = scoring)
+    avgf1 = np.mean(scores['test_f1_macro'])
+    avgprecision = np.mean(scores['test_precision_macro'])
+    avgrecall = np.mean(scores['test_recall_macro'])
 
     print()
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
-    print( "Score: " +  ": " + str(scores))
+    print(scores)
+    print('\n\n')
+    print(avgf1)
+    print(avgprecision)
+    print(avgrecall)
 
     if plot_confusion_matrix:
-        plotConfusionMatrix(classifier, test_vector, test_y)
+        plotConfusionMatrix(classifier, data_vector, y_res)
 
 
-def plotConfusionMatrix(classifier, test_vector, test_y):
-    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 3)
-    scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
+def plotConfusionMatrix(classifier, data_vector, data_y):
+    predictions = cross_val_predict(classifier, data_vector, data_y.ravel(), cv = 10)
+    scikitplot.metrics.plot_confusion_matrix( data_y.ravel(), predictions, normalize=True)
+    matplotlib.pyplot.savefig("save.png")
     matplotlib.pyplot.show()
-  
+    
 
 #########################################################
 # RUN 
