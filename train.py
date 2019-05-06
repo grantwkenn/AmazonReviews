@@ -14,7 +14,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.pipeline import FeatureUnion, Pipeline
 from imblearn.under_sampling import RandomUnderSampler
 
-
+from scipy.sparse import coo_matrix, hstack
 import configuration
 
 #TODO IN PROGRESS  helpful_votes, total_votes, vine, verified_purchase
@@ -96,10 +96,13 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, isPlotti
     #TODO REMOVE THIS LATER, WAS USING TO TEST APPENDING VECTORS
     testing_case = "review_headline"
     dataVector2 = createUnigramVector(dataset, testing_case, X_res, y_res )
+
+    result = hstack([dataVector, dataVector2]).toarray()
     #TODO REMOV THIS AFTER WORKING 
 
+
     scoring = ['precision_macro', 'recall_macro', 'f1_macro']
-    scores = cross_validate(classifier, dataVector, y_res.ravel(), cv = 10, scoring = scoring)
+    scores = cross_validate(classifier, result, y_res.ravel(), cv = 10, scoring = scoring)
     avgf1 = np.mean(scores['test_f1_macro'])
     avgprecision = np.mean(scores['test_precision_macro'])
     avgrecall = np.mean(scores['test_recall_macro'])
