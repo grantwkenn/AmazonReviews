@@ -92,7 +92,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
     X = pd.DataFrame(X, columns = tableFields)
-    print(X)
+    #print(X)
     X_headline = X["review_headline"]#pd.DataFrame(X, columns = ["review_headline"])
     #print(X_headline)
     #print("\nDataset size after RUS: " + str(len(X)) + "\n")
@@ -104,7 +104,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
 
     # vectorize the data using a union of features
     union = FeatureUnion([
-                ("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
+                #("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
                 #("emojis", FunctionFeaturizer(emojis)),
                 #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
                 #("capitalization", FunctionFeaturizer(capitalizationRatio)),
@@ -121,25 +121,26 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     bodyUnion = FeatureUnion([
         ("emojis", FunctionFeaturizer(emojis)),
         #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        #("length", FunctionFeaturizer(length)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        #("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b'))#, ngram_range=(1,2)))
     ])
     X_body = bodyUnion.fit_transform(X_body)
 
 
-    #X_votes = X["helpful_votes"]
-    #b = X_votes.as_matrix()
-    #X_votes = pd.DataFrame(b)
+    X_votes = X["helpful_votes"]
+    b = X_votes.as_matrix()
+    X_votes = pd.DataFrame(b)
 
    # print(X_body)
 
-    X_result = hstack([X_headline, X_body]) .toarray()
+    X_result = hstack([X_headline, X_body]).toarray()
 
 
     #####################################
     ## Training with cross validation
     #####################################
-    scores = cross_validate(classifier, X_headline, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=False)
+    scores = cross_validate(classifier, X_result, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=False)
 
     finish_time = time.time()
     elapsed_time = round(finish_time-start_time, 1)
@@ -205,7 +206,7 @@ def length(text):
     return len(text)
 
 def capitalizationRatio(text):
-    return len(re.findall("[A-Z]", text))
+    return len(re.findall("[A-Z]", text))/ len(text)
 
 # The FunctionFeaturizer implements a transformer which can be used in a Feature Union pipeline.
 # It allows you to specify the function with which to transform the data, and applies
