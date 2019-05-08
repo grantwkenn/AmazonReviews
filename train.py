@@ -32,107 +32,40 @@ from sklearn.naive_bayes import MultinomialNB
 
 from sklearn.model_selection import cross_val_predict
 
+from scipy.sparse import coo_matrix, hstack
+import configuration
+
 #TODO helpful_votes, total_votes, vine, verified_purchase MAY BE USED AS WEIGHTS
 #TODO case, stem, stopwords
 #TODO guessed star vs actual difference
 #TODO more test files
 
-###############################################################
-# BEGIN CONFIGURATION SETUP 
-###############################################################
-def findClassifier (classifier_name):
-    for element in classifiers:
-        if element[0] == classifier_name:
-            return element
-    print("NO VALID CLASSIFIER CHOSEN!")
-    quit()
-
-#possible classifiers
-classifiers = [
-    ("nu_svc" , NuSVC(gamma = 'auto')),
-    ("svc" , SVC(gamma = 'auto') ),
-    ("svc2" , SVC(kernel="linear", C=0.025)),
-    ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
-    ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
-    ("mlp" , MLPClassifier(alpha=1)),
-    ("nb" , MultinomialNB())
-]
-
-#scoring metrics
-scoring = ['precision_macro', 'recall_macro', 'f1_macro']
-
-#possible csv
-vg_set = "Amazon Review Datasets/truncations/vg_trunc_30k.csv"
-video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
-kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
-
-#possible features
-features = [
-    "review_headline",
-    #"review_body"
-    #"review_combined" #TODO combine these
-]
-
-#possible types of classification
-catagory_types = [
-    #"boolean",
-    "catagories"
-]
-
-#possible labels
-star_label = "star_rating"
-
-#features being selected
-testing_features = ["review_body"]
-testing_labels = star_label
-selected_dataset = vg_set
-selected_classifiers = ["nb"]
-testing_types = ["boolean"]
-
-plot_confusion_matrix = True
-
-#use all options
-use_all_features = True
-use_all_classifiers = False
-use_all_types = True
-
-############################################################
-# END CONFIGURATION SET UP
-############################################################
-testing_classifiers = []
-
-for classifier in selected_classifiers:
-    testing_classifiers.append(findClassifier(classifier))
-
-if use_all_features:
-    testing_features = features
-
-if use_all_classifiers:
-    testing_classifiers = classifiers
-
-if use_all_types:
-    testing_types = catagory_types
 
 ##########################################################
 #Generate Dataset
 ##########################################################
 
-def testDataset(classifier, testing_feature, data_type):
+def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
     classifier_name = classifier[0]
     classifier = classifier[1]
     
-    if ( data_type == "boolean" ):
+    if ( dataType == "boolean" ):
         binary_classification = True
     else:
         binary_classification = False
 
     #input data from CSV file
-    input_data = pd.read_csv(selected_dataset)
+    input_data = pd.read_csv(selectedDataset)
 
     start_time = time.time()
 
     #define dataset
-    dataset = {"review_body": input_data["review_body"], "star_rating": input_data["star_rating"], "review_headline": input_data["review_headline"] }
+    dataset = {"review_body": input_data["review_body"].values, 
+        "star_rating": input_data["star_rating"].values,
+        "review_headline": input_data["review_headline"].values,
+        "helpful_votes": input_data["helpful_votes"].values,
+        "total_votes": input_data["total_votes"].values
+        }
     dataset = pd.DataFrame(data = dataset)
     #print("Dataset size before dropping: " + str(len(dataset)))
     dataset = dataset.dropna() #drop missing values
@@ -140,15 +73,16 @@ def testDataset(classifier, testing_feature, data_type):
 
 
     if binary_classification: # omit 3 star reviews, binary classification
-        dataset["label"] = dataset[star_label].apply(lambda rating : +1 if str(rating) > '3' else -1)
+        dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '3' else -1)
     else:
-        dataset["label"] = dataset[star_label] # star classification
+        dataset["label"] = dataset["star_rating"] # star classification
 
 
     body_head_combined = dataset["review_body"].map(str) + dataset["review_headline"].map(str)   
-    X = pd.DataFrame(body_head_combined)
-    X = pd.DataFrame(dataset, columns = ["review_headline"])
-
+    #X = pd.DataFrame(body_head_combined)
+    #X = pd.DataFrame(dataset, columns = [testingFeatures])
+    tableFields = ["review_headline", "review_body", "star_rating", "helpful_votes", "total_votes"]
+    X = pd.DataFrame(dataset, columns = tableFields)
     y = pd.DataFrame(dataset, columns = ["label"])
 
     #####################################
@@ -157,7 +91,10 @@ def testDataset(classifier, testing_feature, data_type):
 
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
-    X = pd.DataFrame(X, columns = [testing_feature])
+    X = pd.DataFrame(X, columns = tableFields)
+
+    X_headline = X["review_headline"]#pd.DataFrame(X, columns = ["review_headline"])
+    print(X_headline)
     #print("\nDataset size after RUS: " + str(len(X)) + "\n")
 
 
@@ -168,18 +105,43 @@ def testDataset(classifier, testing_feature, data_type):
     # vectorize the data using a union of features
     union = FeatureUnion([
                 ("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
-                ("emojis", FunctionFeaturizer(emojis)),
-                ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+                #("emojis", FunctionFeaturizer(emojis)),
+                #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+                #("capitalization", FunctionFeaturizer(capitalizationRatio)),
                 ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
                   ])
     # fit the above transformers to the data
-    X = union.fit_transform(X[testing_feature])
+
+    X_headline = union.fit_transform(X_headline)
+
+
+    #reviewBody = pd.DataFrame(dataset, columns = ["review_body"])
+    
+    X_body = X["review_body"]
+    bodyUnion = FeatureUnion([
+        ("emojis", FunctionFeaturizer(emojis)),
+        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        ("capitalization", FunctionFeaturizer(capitalizationRatio)),
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+    ])
+    X_body = bodyUnion.fit_transform(X_body)
+
+
+    #X_votes = X["helpful_votes"]
+    #b = X_votes.as_matrix()
+    #X_votes = pd.DataFrame(b)
+
+   # print(X_body)
+
+    X_result = hstack([X_headline, X_body]) .toarray()
+
+
 
 
     #####################################
     ## Training with cross validation
     #####################################
-    scores = cross_validate(classifier, X, y.ravel(), scoring=scoring, cv=5, return_train_score=False)
+    scores = cross_validate(classifier, X_headline, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=False)
 
     finish_time = time.time()
     elapsed_time = round(finish_time-start_time, 1)
@@ -190,14 +152,14 @@ def testDataset(classifier, testing_feature, data_type):
     avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
     #print(datetime.datetime.now())
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
+    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeatures + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(avgprec))
     print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
 
-    if plot_confusion_matrix:
+    if isPlottingConfusionMatrix:
         plotConfusionMatrix(classifier, X, y)
 
 def plotConfusionMatrix(classifier, test_vector, test_y):
@@ -244,6 +206,8 @@ def dots(text):
 def length(text):
     return len(text)
 
+def capitalizationRatio(text):
+    return len(re.findall("[A-Z]", text))
 
 # The FunctionFeaturizer implements a transformer which can be used in a Feature Union pipeline.
 # It allows you to specify the function with which to transform the data, and applies
@@ -262,13 +226,3 @@ class FunctionFeaturizer(TransformerMixin):
             fv = [f(datum) for f in self.featurizers]
             fvs.append(fv)
         return np.array(fvs)
-
-
-#########################################################
-# RUN 
-#########################################################
-
-for classifier in testing_classifiers:
-    for feature in testing_features:
-        for data_type in testing_types:
-            testDataset(classifier, feature, data_type)
