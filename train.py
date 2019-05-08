@@ -92,9 +92,9 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
     X = pd.DataFrame(X, columns = tableFields)
-
+    print(X)
     X_headline = X["review_headline"]#pd.DataFrame(X, columns = ["review_headline"])
-    print(X_headline)
+    #print(X_headline)
     #print("\nDataset size after RUS: " + str(len(X)) + "\n")
 
 
@@ -122,7 +122,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         ("emojis", FunctionFeaturizer(emojis)),
         #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        #("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
     ])
     X_body = bodyUnion.fit_transform(X_body)
 
@@ -134,8 +134,6 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
    # print(X_body)
 
     X_result = hstack([X_headline, X_body]) .toarray()
-
-
 
 
     #####################################
