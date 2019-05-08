@@ -4,12 +4,15 @@ import pandas as pd
 import string
 import matplotlib.pyplot
 import scikitplot
+import random
 import time
 import datetime
 import statistics
 import re
 
-
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.compose import ColumnTransformer
+from scipy.sparse import coo_matrix, hstack
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.pipeline import FeatureUnion
@@ -55,14 +58,14 @@ classifiers = [
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
     ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
     ("mlp" , MLPClassifier(alpha=1)),
-    ("nb" , MultinomialNB())
+    ("nb" , MultinomialNB(alpha=0.1))
 ]
 
 #scoring metrics
 scoring = ['precision_macro', 'recall_macro', 'f1_macro']
 
 #possible csv
-vg_set = "Amazon Review Datasets/truncations/vg_trunc_30k.csv"
+vg_set = "Amazon Review Datasets/truncations/vg_trunc_70k.csv"
 video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
 kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 
@@ -75,7 +78,7 @@ features = [
 
 #possible types of classification
 catagory_types = [
-    #"boolean",
+    "boolean",
     "catagories"
 ]
 
@@ -83,7 +86,7 @@ catagory_types = [
 star_label = "star_rating"
 
 #features being selected
-testing_features = ["review_body"]
+testing_features = ["review_headline", "review_body"]
 testing_labels = star_label
 selected_dataset = vg_set
 selected_classifiers = ["nb"]
@@ -131,24 +134,31 @@ def testDataset(classifier, testing_feature, data_type):
 
     start_time = time.time()
 
+    input_data['review_headline_body'] = input_data.review_headline + ' ' + input_data.review_body
+
     #define dataset
-    dataset = {"review_body": input_data["review_body"], "star_rating": input_data["star_rating"], "review_headline": input_data["review_headline"] }
+    dataset = {"review_body": input_data["review_body"].values,
+        "star_rating": input_data["star_rating"].values,
+        "review_headline": input_data["review_headline"].values,
+        "vine": input_data["vine"].values,
+        "helpful_votes": input_data["helpful_votes"].values,
+        "total_votes": input_data["total_votes"].values,
+        "review_headline_body" : input_data["review_headline_body"].values }
     dataset = pd.DataFrame(data = dataset)
-    #print("Dataset size before dropping: " + str(len(dataset)))
     dataset = dataset.dropna() #drop missing values
-    #print("Dataset size after dropping: " + str(len(dataset)))
 
+    dataset["vine"] = dataset["vine"].apply(lambda yesno : 1 if yesno == 'Y' else 0)
 
-    if binary_classification: # omit 3 star reviews, binary classification
-        dataset["label"] = dataset[star_label].apply(lambda rating : +1 if str(rating) > '3' else -1)
+    if binary_classification: # omit 3 star reviews
+        dataset["label"] = dataset[star_label].apply(lambda rating : +1 if str(rating) > '2' else -1)
     else:
-        dataset["label"] = dataset[star_label] # star classification
+        dataset["label"] = dataset[star_label] # 5-star classification
 
 
-    body_head_combined = dataset["review_body"].map(str) + dataset["review_headline"].map(str)   
-    X = pd.DataFrame(body_head_combined)
-    X = pd.DataFrame(dataset, columns = ["review_headline"])
+    #body_head_combined = dataset["review_body"].map(str) + dataset["review_headline"].map(str)   
 
+    tableFields = ["review_headline", "review_body", "star_rating", "helpful_votes", "total_votes", "vine", "review_headline_body"]
+    X = pd.DataFrame(dataset, columns = tableFields)
     y = pd.DataFrame(dataset, columns = ["label"])
 
     #####################################
@@ -157,32 +167,45 @@ def testDataset(classifier, testing_feature, data_type):
 
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
-    X = pd.DataFrame(X, columns = [testing_feature])
+    X = pd.DataFrame(X, columns = tableFields)
     #print("\nDataset size after RUS: " + str(len(X)) + "\n")
-
 
     #####################################
     # Vectorization / Feature Extraction
     #####################################
 
     # vectorize the data using a union of features
+
     union = FeatureUnion([
-                ("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
+                ("length", FunctionFeaturizer(commas)),
+                #("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
                 ("emojis", FunctionFeaturizer(emojis)),
+                #("lol", FunctionFeaturizer(lol)),
                 ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-                ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+                ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2))),
                   ])
-    # fit the above transformers to the data
-    X = union.fit_transform(X[testing_feature])
+    # fit the above transformers to the data    
+    #X = union.fit_transform(X[], y)
+
+    ct = ColumnTransformer(
+        [("union", union, "review_headline_body"), 
+        ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]),
+        ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]),
+        ("vine", FunctionTransformer(validate=False), ["vine"])
+        ]
+    )
+
+    X = ct.fit_transform(X, y)
 
 
     #####################################
     ## Training with cross validation
     #####################################
-    scores = cross_validate(classifier, X, y.ravel(), scoring=scoring, cv=5, return_train_score=False)
+    scores = cross_validate(classifier, X, y.ravel(), scoring=scoring, cv=2, return_train_score=False)
 
     finish_time = time.time()
     elapsed_time = round(finish_time-start_time, 1)
+
 
     #Performance Metrics: f1, Precision, Recall
     avgf1 = round(statistics.mean(scores['test_f1_macro']), 3)
@@ -190,9 +213,9 @@ def testDataset(classifier, testing_feature, data_type):
     avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
     #print(datetime.datetime.now())
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
-    print( "Precision Score: " + str(avgprec))
-    print( "Recall Score: " + str(avgrecall))
+    #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testing_feature + "\tIs Binary: " + str(binary_classification))
+    #print( "Precision Score: " + str(avgprec))
+    #print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
@@ -201,8 +224,8 @@ def testDataset(classifier, testing_feature, data_type):
         plotConfusionMatrix(classifier, X, y)
 
 def plotConfusionMatrix(classifier, test_vector, test_y):
-    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 12)
-    scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
+    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 2)
+    scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=False)
     matplotlib.pyplot.savefig("save.png") ##add timestamp to title to preserve multiples
     matplotlib.pyplot.show()
 
@@ -229,6 +252,12 @@ def emojis(text):
     if sadface > happyface:
         return 1
     return 0
+
+def lol(text):
+    return len(re.findall("lol", text))
+
+def commas(text):
+    return len(re.findall(",", text))
 
 
 def exclamation(text):
@@ -262,6 +291,22 @@ class FunctionFeaturizer(TransformerMixin):
             fv = [f(datum) for f in self.featurizers]
             fvs.append(fv)
         return np.array(fvs)
+
+class voteFeaturizer(TransformerMixin):
+    def __init__(self, *featurizers):
+        self.featurizers = featurizers
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        fvs = []
+        for datum in X:
+            fvs.append(datum)
+        return np.array(fvs)
+
+def count(x):
+    return x
 
 
 #########################################################
