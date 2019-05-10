@@ -104,11 +104,13 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
 
     # vectorize the data using a union of features
     union = FeatureUnion([
+                #("periods", FunctionFeaturizer(period)),
                 #("dots", FunctionFeaturizer(dots)), #works well on headlines, but not text. 
                 #("emojis", FunctionFeaturizer(emojis)),
                 #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
                 #("capitalization", FunctionFeaturizer(capitalizationRatio)),
                 ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+                #("vectorizer", CountVectorizer( ))
                   ])
     # fit the above transformers to the data
 
@@ -124,6 +126,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         #("length", FunctionFeaturizer(length)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
         ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b'))#, ngram_range=(1,2)))
+        #("vectorizer", CountVectorizer())
     ])
     X_body = bodyUnion.fit_transform(X_body)
 
@@ -183,6 +186,10 @@ def caps(text):
         return len(runs[-1])
     else:
         return 0
+
+def period(text):
+    #Find number of periods
+    return len(re.findall("\.", text))
 
 def emojis(text):
     sadface = len(re.findall(":\(", text)) + len(re.findall("\):", text))
