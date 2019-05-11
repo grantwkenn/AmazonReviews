@@ -27,6 +27,8 @@ classifiers = [
     ("nb" , MultinomialNB())
 ]
 
+#possible feature
+
 #scoring metrics
 scoringMetrics = ['precision_macro', 'recall_macro', 'f1_macro']
 

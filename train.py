@@ -9,7 +9,7 @@ import datetime
 import statistics
 import re
 
-
+from sklearn.feature_selection import chi2
 from sklearn.base import TransformerMixin
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.pipeline import FeatureUnion
@@ -44,11 +44,7 @@ import configuration
 ##########################################################
 #Generate Dataset
 ##########################################################
-
-def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
-    classifier_name = classifier[0]
-    classifier = classifier[1]
-    
+def extractDataset(selectedDataset, dataType):
     if ( dataType == "boolean" ):
         binary_classification = True
     else:
@@ -56,8 +52,6 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
 
     #input data from CSV file
     input_data = pd.read_csv(selectedDataset)
-
-    start_time = time.time()
 
     #define dataset
     dataset = {"review_body": input_data["review_body"].values, 
@@ -67,21 +61,29 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         "total_votes": input_data["total_votes"].values
         }
     dataset = pd.DataFrame(data = dataset)
-    #print("Dataset size before dropping: " + str(len(dataset)))
     dataset = dataset.dropna() #drop missing values
-    #print("Dataset size after dropping: " + str(len(dataset)))
-
 
     if binary_classification: # omit 3 star reviews, binary classification
         dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '3' else -1)
     else:
         dataset["label"] = dataset["star_rating"] # star classification
+    return dataset
 
+
+################################################################
+# Test dataset
+################################################################
+def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
+    classifier_name = classifier[0]
+    classifier = classifier[1]
+    
+   
+    dataset = extractDataset(selectedDataset, dataType)
 
     body_head_combined = dataset["review_body"].map(str) + dataset["review_headline"].map(str)   
-    #X = pd.DataFrame(body_head_combined)
-    #X = pd.DataFrame(dataset, columns = [testingFeatures])
     tableFields = ["review_headline", "review_body", "star_rating", "helpful_votes", "total_votes"]
+
+    
     X = pd.DataFrame(dataset, columns = tableFields)
     y = pd.DataFrame(dataset, columns = ["label"])
 
@@ -92,10 +94,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
     X = pd.DataFrame(X, columns = tableFields)
-    #print(X)
-    X_headline = X["review_headline"]#pd.DataFrame(X, columns = ["review_headline"])
-    #print(X_headline)
-    #print("\nDataset size after RUS: " + str(len(X)) + "\n")
+    X_headline = X["review_headline"]
 
 
     #####################################
@@ -116,8 +115,6 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
 
     X_headline = union.fit_transform(X_headline)
 
-
-    #reviewBody = pd.DataFrame(dataset, columns = ["review_body"])
     
     X_body = X["review_body"]
     bodyUnion = FeatureUnion([
@@ -143,6 +140,8 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     #####################################
     ## Training with cross validation
     #####################################
+    start_time = time.time()
+
     scores = cross_validate(classifier, X_result, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=False)
 
     finish_time = time.time()
