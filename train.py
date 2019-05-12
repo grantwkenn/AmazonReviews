@@ -77,7 +77,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         dataset["label"] = dataset["star_rating"] # star classification
 
     #This line omits 3 star reviews
-    dataset = dataset[dataset.star_rating != 3]
+    #dataset = dataset[dataset.star_rating != 3]
 
     tableFields = ["review_headline", "review_body", "star_rating", 
                 "helpful_votes", "total_votes", "vine", "verified_purchase"]
@@ -103,16 +103,18 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         #("emojis", FunctionFeaturizer(emojis)), # no effect
         #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("giveaway", FunctionFeaturizer(giveaway)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        #('capitalization', FunctionFeaturizer(capitalizationRatio)),
+        ("dots", FunctionFeaturizer(dots)),
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
     ])
 
     # union of features on body
     bodyUnion = FeatureUnion([
         ("emojis", FunctionFeaturizer(emojis)), 
-        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("question", FunctionFeaturizer(question)),
-        ("capitalization", FunctionFeaturizer(caps)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,1)))
+        ("capitalization", FunctionFeaturizer(capitalizationRatio)),
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
     #join all transformers column-wise
@@ -120,20 +122,26 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
         [
         ("union", headUnion, "review_headline"),
         ("body_union", bodyUnion, "review_body"),
-        ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
-        ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
-        ("vine", FunctionTransformer(validate=False), ["vine"]),
-        ("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
+        #("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
+        #("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
+        #("vine", FunctionTransformer(validate=False), ["vine"]),
+        #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
         ]
     )
     # fit & transorm the data
     X = ct.fit_transform(X)
+    #X_headline = X["review_headline"]
+    #X_headline = headUnion.fit_transform(X_headline)
+    #X_body = X["review_body"]
+    #X_body = bodyUnion.fit_transform(X_body)
 
+    #X = hstack([X_headline, X_body])
+    
     #####################################
     ## Training with cross validation
     #####################################
 
-    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=2, return_train_score=True)
+    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=True)
 
     #stop the clock, compute runtime
     finish_time = time.time()
@@ -146,8 +154,8 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
 
     #print(datetime.datetime.now())
     #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeatures + "\tIs Binary: " + str(binary_classification))
-    #print( "Precision Score: " + str(avgprec))
-    #print( "Recall Score: " + str(avgrecall))
+    print( "Precision Score: " + str(avgprec))
+    print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 

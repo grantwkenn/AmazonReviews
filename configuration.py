@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.svm import SVC, NuSVC
 
@@ -17,6 +17,14 @@ def findClassifier (classifier_name):
     quit()
 
 #possible classifiers
+votingClassifier = VotingClassifier(estimators= [ 
+    ("nu_svc" , NuSVC(gamma = 'auto')),
+    ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
+    ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
+    ("mlp" , MLPClassifier(alpha=1)),
+    ("nb" , MultinomialNB())
+    ])
+
 classifiers = [
     ("nu_svc" , NuSVC(gamma = 'auto')),
     ("svc" , SVC(gamma = 'auto') ),
@@ -24,14 +32,17 @@ classifiers = [
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
     ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
     ("mlp" , MLPClassifier(alpha=1)),
-    ("nb" , MultinomialNB())
+    ("nb" , MultinomialNB()),
+    ("votingClassifier", votingClassifier)
 ]
+
 
 #scoring metrics
 scoringMetrics = ['precision_macro', 'recall_macro', 'f1_macro']
 
 #possible csv
-video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
+video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
+#video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
 kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 
 #possible features
@@ -54,15 +65,15 @@ star_label = "star_rating"
 testing_features = ["review_headline"]
 testing_labels = star_label
 selected_dataset = video_game_data
-selected_classifiers = ["nu_svc"]
-testing_types = ["boolean"]
+selected_classifiers = ["nb"]
+testing_types = ["catagories"]
 
 plot_confusion_matrix = False
 
 #use all options
 use_all_features = False
 use_all_classifiers = False
-use_all_types = True
+use_all_types = False
 
 
 ############################################################
