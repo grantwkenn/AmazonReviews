@@ -58,7 +58,7 @@ testing_features = ["review_headline"]
 testing_labels = star_label
 selected_dataset = video_game_data
 selected_classifiers = ["nb"]
-testing_types = ["boolean"]
+testing_types = ["catagories"]
 
 plot_confusion_matrix = False
 

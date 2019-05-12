@@ -153,7 +153,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
     #print(datetime.datetime.now())
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeatures + "\tIs Binary: " + str(binary_classification))
+    #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeatures + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(avgprec))
     print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
