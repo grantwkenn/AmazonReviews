@@ -23,7 +23,7 @@ votingClassifier = VotingClassifier(estimators= [
     ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
     ("mlp" , MLPClassifier(alpha=1)),
     ("nb" , MultinomialNB())
-    ])
+    ], voting='hard')
 
 classifiers = [
     ("nu_svc" , NuSVC(gamma = 'auto')),
@@ -48,8 +48,8 @@ kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 #possible features
 features = [
     "review_headline",
-    #"review_body"
-    #"review_combined" #TODO combine these
+    "review_body"
+    "combined"
 ]
 
 #possible types of classification

@@ -35,7 +35,7 @@ from sklearn.svm import NuSVC
 from sklearn.tree import DecisionTreeClassifier
 
 
-def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
+def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
     
     #####################################
     # Setup Data
@@ -89,7 +89,7 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     #####################################
     #print("\nDataset size before RUS: " + str(len(X)) + "\n")
 
-    rus = RandomUnderSampler(random_state=70)
+    rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
     X = pd.DataFrame(X, columns = tableFields)
 
@@ -101,9 +101,9 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     # union of features on headline
     headUnion = FeatureUnion([ 
         #("emojis", FunctionFeaturizer(emojis)), # no effect
-        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("giveaway", FunctionFeaturizer(giveaway)),
-        #('capitalization', FunctionFeaturizer(capitalizationRatio)),
+        ('capitalization', FunctionFeaturizer(capitalizationRatio)),
         ("dots", FunctionFeaturizer(dots)),
         ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
     ])
@@ -111,31 +111,33 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     # union of features on body
     bodyUnion = FeatureUnion([
         ("emojis", FunctionFeaturizer(emojis)), 
-        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-        #("question", FunctionFeaturizer(question)),
+        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        ("question", FunctionFeaturizer(question)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
         ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
-    #join all transformers column-wise
-    ct = ColumnTransformer(
-        [
-        ("union", headUnion, "review_headline"),
-        ("body_union", bodyUnion, "review_body"),
-        #("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
-        #("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
-        #("vine", FunctionTransformer(validate=False), ["vine"]),
+    #feature transformers being used
+    featureTransformers = [
+        ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
+        ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
+        ("vine", FunctionTransformer(validate=False), ["vine"]),
         #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
-        ]
-    )
+    ]
+
+    headlineTransformer = ("union", headUnion, "review_headline")
+    bodyTransformer = ("body_union", bodyUnion, "review_body")
+
+    if( testingFeature == "review_headline" or testingFeature == "combined"):
+        featureTransformers.append(headlineTransformer)
+
+    if(testingFeature == "review_body" or testingFeature == "combined"):
+        featureTransformers.append(bodyTransformer)
+
+    #join all transformers column-wise
+    ct = ColumnTransformer( featureTransformers )
     # fit & transorm the data
     X = ct.fit_transform(X)
-    #X_headline = X["review_headline"]
-    #X_headline = headUnion.fit_transform(X_headline)
-    #X_body = X["review_body"]
-    #X_body = bodyUnion.fit_transform(X_body)
-
-    #X = hstack([X_headline, X_body])
     
     #####################################
     ## Training with cross validation
@@ -160,13 +162,15 @@ def testDataset(classifier, testingFeatures, dataType, selectedDataset, scoringM
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
 
-    if isPlottingConfusionMatrix:
-        plotConfusionMatrix(classifier, X, y)
 
-def plotConfusionMatrix(classifier, test_vector, test_y):
+    if isPlottingConfusionMatrix:
+        imageLabel = selectedDataset + classifier_name + testingFeatures + ".png"
+        plotConfusionMatrix(classifier, X, y, imageLabel )
+
+def plotConfusionMatrix(classifier, test_vector, test_y, label):
     predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 10)
     scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
-    matplotlib.pyplot.savefig("save.png") ##add timestamp to title to preserve multiples
+    matplotlib.pyplot.savefig(label) ##add timestamp to title to preserve multiples
     matplotlib.pyplot.show()
 
 
@@ -186,8 +190,8 @@ def caps(text):
         return 0
 
 def emojis(text):
-    sadface = len(re.findall(":\(", text)) + len(re.findall("\):", text))
-    happyface = len(re.findall(":\)", text)) + len(re.findall("\(:", text)) + len(re.findall(":D", text))
+    sadface = len(re.findall(":\(", text)) + len(re.findall("\):", text)) + len(re.findall(":'\(", text)) + len(re.findall("\)':", text))
+    happyface = len(re.findall(":\)", text)) + len(re.findall("\(:", text)) + len(re.findall(":D", text)) + len(re.findall("XD", text)) + len(re.findall(":3", text))
     if sadface > happyface: return sadface
     return happyface
 
