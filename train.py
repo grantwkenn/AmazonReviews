@@ -164,7 +164,7 @@ def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMe
 
 
     if isPlottingConfusionMatrix:
-        imageLabel = selectedDataset + classifier_name + testingFeatures + ".png"
+        imageLabel = selectedDataset + classifier_name + testingFeature + ".png"
         plotConfusionMatrix(classifier, X, y, imageLabel )
 
 def plotConfusionMatrix(classifier, test_vector, test_y, label):
