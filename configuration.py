@@ -48,8 +48,8 @@ kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 #possible options
 options = [
     "review_headline",
-    "review_body"
-    "combined"
+    #"review_body"
+    #"combined"
 ]
 
 #possible types of classification

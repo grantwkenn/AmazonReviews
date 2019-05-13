@@ -72,7 +72,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     dataset["verified_purchase"] = dataset["verified_purchase"].apply(lambda yesno : 1 if yesno == 'Y' else 0)
 
     if binary_classification: # Binary: 4-5 stars "good" , 1-3 stars "bad"
-        dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '3' else -1)
+        dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '2' else -1)
     else:
         dataset["label"] = dataset["star_rating"] # star classification
 
@@ -119,20 +119,22 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
 
     #feature transformers being used
     featureTransformers = [
+        ("union", headUnion, "review_headline"),
+        ("body_union", bodyUnion, "review_body"),
         ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
         ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
-        ("vine", FunctionTransformer(validate=False), ["vine"]),
+        ("vine", FunctionTransformer(validate=False), ["vine"])
         #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
     ]
 
     headlineTransformer = ("union", headUnion, "review_headline")
     bodyTransformer = ("body_union", bodyUnion, "review_body")
 
-    if( testingOption == "review_headline" or testingOption == "combined"):
-        featureTransformers.append(headlineTransformer)
+    #if( testingOption == "review_headline" or testingOption == "combined"):
+     #   featureTransformers = featureTransformers.append(headlineTransformer)
 
-    if(testingOption == "review_body" or testingOption == "combined"):
-        featureTransformers.append(bodyTransformer)
+   # if(testingOption == "review_body" or testingOption == "combined"):
+    #   featureTransformers = featureTransformers.append(bodyTransformer)
 
     #join all transformers column-wise
     ct = ColumnTransformer( featureTransformers )
@@ -154,8 +156,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     avgprec = round(statistics.mean(scores['test_precision_macro']), 3)
     avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
-    #print(datetime.datetime.now())
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeature + "\tIs Binary: " + str(binary_classification))
+    print(datetime.datetime.now())
+    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(avgprec))
     print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
