@@ -117,8 +117,16 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
+    optionalTransformers = []
+    #if( testingOption == "review_headline" or testingOption == "combined"):
+   #     optionalTransformers = optionalTransformers.append(headlineTransformer)
+
+    #if(testingOption == "review_body" or testingOption == "combined"):
+     #  optionalTransformers = optionalTransformers.append(bodyTransformer)
     #feature transformers being used
+
     featureTransformers = [
+        #optionalTransformers,
         ("union", headUnion, "review_headline"),
         ("body_union", bodyUnion, "review_body"),
         ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
