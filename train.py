@@ -35,7 +35,7 @@ from sklearn.svm import NuSVC
 from sklearn.tree import DecisionTreeClassifier
 
 
-def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
+def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
     
     #####################################
     # Setup Data
@@ -128,10 +128,10 @@ def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMe
     headlineTransformer = ("union", headUnion, "review_headline")
     bodyTransformer = ("body_union", bodyUnion, "review_body")
 
-    if( testingFeature == "review_headline" or testingFeature == "combined"):
+    if( testingOption == "review_headline" or testingOption == "combined"):
         featureTransformers.append(headlineTransformer)
 
-    if(testingFeature == "review_body" or testingFeature == "combined"):
+    if(testingOption == "review_body" or testingOption == "combined"):
         featureTransformers.append(bodyTransformer)
 
     #join all transformers column-wise
@@ -155,7 +155,7 @@ def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMe
     avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
     #print(datetime.datetime.now())
-    #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeatures + "\tIs Binary: " + str(binary_classification))
+    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingFeature + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(avgprec))
     print( "Recall Score: " + str(avgrecall))
     print( "f1 Score: " + str(avgf1))
@@ -164,7 +164,7 @@ def testDataset(classifier, testingFeature, dataType, selectedDataset, scoringMe
 
 
     if isPlottingConfusionMatrix:
-        imageLabel = selectedDataset + classifier_name + testingFeature + ".png"
+        imageLabel = selectedDataset + classifier_name + testingOption + ".png"
         plotConfusionMatrix(classifier, X, y, imageLabel )
 
 def plotConfusionMatrix(classifier, test_vector, test_y, label):

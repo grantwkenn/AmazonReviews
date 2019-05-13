@@ -5,7 +5,7 @@ import train
 #Configuration settings
 #############################################################
 testingClassifiers = configuration.getTestingClassifiers()
-testingFeatures = configuration.getTestingFeatures()
+testingOptions = configuration.getTestingOptions()
 testingTypes = configuration.getTestingTypes()
 selectedDataset = configuration.getSelectedDataset()
 isPlottingConfusionMatrix = configuration.getPlotSetting()
@@ -15,6 +15,6 @@ scoringMetrics = configuration.getScoringMetrics()
 # RUN
 #########################################################
 for classifier in testingClassifiers:
-    for feature in testingFeatures:
+    for option in testingOptions:
         for dataType in testingTypes:
-            train.testDataset(classifier, feature, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix)
+            train.testDataset(classifier, option, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix)

@@ -45,8 +45,8 @@ video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
 #video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
 kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
 
-#possible features
-features = [
+#possible options
+options = [
     "review_headline",
     "review_body"
     "combined"
@@ -62,7 +62,7 @@ catagory_types = [
 star_label = "star_rating"
 
 #features being selected
-testing_features = ["review_headline"]
+testing_options = ["review_headline"]
 testing_labels = star_label
 selected_dataset = video_game_data
 selected_classifiers = ["nb"]
@@ -71,7 +71,7 @@ testing_types = ["catagories"]
 plot_confusion_matrix = False
 
 #use all options
-use_all_features = False
+use_all_options = False
 use_all_classifiers = False
 use_all_types = False
 
@@ -84,8 +84,8 @@ testing_classifiers = []
 for classifier in selected_classifiers:
     testing_classifiers.append(findClassifier(classifier))
 
-if use_all_features:
-    testing_features = features
+if use_all_options:
+    testing_options = options
 
 if use_all_classifiers:
     testing_classifiers = classifiers
@@ -96,8 +96,8 @@ if use_all_types:
 def getTestingClassifiers():
     return testing_classifiers
 
-def getTestingFeatures():
-    return testing_features
+def getTestingOptions():
+    return options
 
 def getTestingTypes():
     return testing_types
@@ -110,4 +110,3 @@ def getPlotSetting():
 
 def getScoringMetrics():
     return scoringMetrics
-
