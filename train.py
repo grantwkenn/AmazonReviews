@@ -72,7 +72,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     dataset["verified_purchase"] = dataset["verified_purchase"].apply(lambda yesno : 1 if yesno == 'Y' else 0)
 
     if binary_classification: # Binary: 4-5 stars "good" , 1-3 stars "bad"
-        dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '2' else -1)
+        dataset["label"] = dataset["star_rating"].apply(lambda rating : +1 if str(rating) > '3' else -1)
     else:
         dataset["label"] = dataset["star_rating"] # star classification
 
@@ -101,11 +101,11 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     # union of features on headline
     headUnion = FeatureUnion([ 
         #("emojis", FunctionFeaturizer(emojis)), # no effect
-        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("giveaway", FunctionFeaturizer(giveaway)),
-        ('capitalization', FunctionFeaturizer(capitalizationRatio)),
-        ("dots", FunctionFeaturizer(dots)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
+        #('capitalization', FunctionFeaturizer(capitalizationRatio)),
+        #("dots", FunctionFeaturizer(dots)),
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
     ])
 
     # union of features on body
@@ -114,7 +114,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ("question", FunctionFeaturizer(question)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
     optionalTransformers = []
