@@ -94,6 +94,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     X, y = rus.fit_resample(X, y)
     X = pd.DataFrame(X, columns = tableFields)
 
+    datasetSize = X.shape[0]
+
     #print("\nDataset size after RUS: " + str(len(X)) + "\n")
     #####################################
     # Vectorization / Feature Extraction
@@ -107,7 +109,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         #('capitalization', FunctionFeaturizer(capitalizationRatio)),
         #("dots", FunctionFeaturizer(dots)),
         #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
+        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
     ])
 
     # union of features on body
@@ -117,7 +120,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         #("question", FunctionFeaturizer(question)),
         #("capitalization", FunctionFeaturizer(capitalizationRatio)),
         #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
+        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
+        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b'))
     ])
 
  
@@ -168,7 +172,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
 
 
     if isRecordingResults:
-        resultWriter.writeResults("Results/Amazon_Review_Results.csv", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, selectedDataset, elapsed_time  )
+        resultWriter.writeResults("Results/Amazon_Review_Results.csv", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, datasetSize, selectedDataset, elapsed_time  )
 
     if isPlottingConfusionMatrix:
         imageLabel = selectedDataset + classifier_name + testingOption + ".png"

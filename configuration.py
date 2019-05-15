@@ -10,7 +10,8 @@ from sklearn.svm import SVC, NuSVC
 
 video_game_data = [
    # "Amazon Review Datasets/video_games_truncated.csv",
-   # "Amazon Review Datasets/Video_games_trunc_500k.csv",
+   #"Amazon Review Datasets/amazon_reviews_Video_Games.csv"
+  #  "Amazon Review Datasets/Video_games_trunc_500k.csv",
    # "Amazon Review Datasets/Video_games_trunc_250k.csv",
    # "Amazon Review Datasets/Video_games_trunc_100k.csv",
    # "Amazon Review Datasets/Video_games_trunc_90k.csv",
@@ -18,10 +19,10 @@ video_game_data = [
    # "Amazon Review Datasets/Video_games_trunc_70k.csv",
    # "Amazon Review Datasets/Video_games_trunc_60k.csv",
    # "Amazon Review Datasets/Video_games_trunc_50k.csv",
-   # #"Amazon Review Datasets/Video_games_trunc_40k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_40k.csv",
     "Amazon Review Datasets/Video_games_trunc_10k.csv",
-    "Amazon Review Datasets/Video_games_trunc_20k.csv",
-    "Amazon Review Datasets/Video_games_trunc_30k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_20k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_30k.csv",
 ]
 
 #video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
@@ -42,9 +43,9 @@ plot_confusion_matrix = False
 record_results = True
 
 #use all options
-use_all_options = True
-use_all_classifiers = True
-use_all_types = True
+use_all_options = False
+use_all_classifiers = False
+use_all_types = False
 
 
 #############################################################

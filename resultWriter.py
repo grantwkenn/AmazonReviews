@@ -1,6 +1,6 @@
 import csv
 
-def writeResults (targetFilePath, option, classifier, dataType, precision, recall, f1, dataPath, elapsedTime):
+def writeResults (targetFilePath, option, classifier, dataType, precision, recall, f1, datasetSize, dataPath, elapsedTime):
     file = open(targetFilePath, "a+", newline='')
     fileWriter = csv.writer(file, quotechar="", quoting=csv.QUOTE_NONE, delimiter=',', escapechar='\\')
 
@@ -11,6 +11,7 @@ def writeResults (targetFilePath, option, classifier, dataType, precision, recal
         precision,
         recall,
         f1,
+        datasetSize,
         dataPath,
         elapsedTime
     ])
