@@ -10,11 +10,13 @@ testingTypes = configuration.getTestingTypes()
 selectedDataset = configuration.getSelectedDataset()
 isPlottingConfusionMatrix = configuration.getPlotSetting()
 scoringMetrics = configuration.getScoringMetrics()
+isRecordingResults = configuration.getRecordingSetting()
 
 #########################################################
 # RUN
 #########################################################
-for classifier in testingClassifiers:
-    for option in testingOptions:
-        for dataType in testingTypes:
-            train.testDataset(classifier, option, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix)
+for dataFile in selectedDataset:
+    for classifier in testingClassifiers:
+        for option in testingOptions:
+            for dataType in testingTypes:
+                train.testDataset( classifier, option, dataType, dataFile, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults)

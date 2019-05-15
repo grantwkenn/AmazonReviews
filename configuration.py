@@ -6,9 +6,51 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingC
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.svm import SVC, NuSVC
 
+#possible csv
+'''
+video_game_data = [
+    "Amazon Review Datasets/video_games_truncated.csv",
+    "Amazon Review Datasets/Video_games_trunc_500k.csv",
+    "Amazon Review Datasets/Video_games_trunc_250k.csv",
+    "Amazon Review Datasets/Video_games_trunc_100k.csv",
+    "Amazon Review Datasets/Video_games_trunc_90k.csv",
+    "Amazon Review Datasets/Video_games_trunc_80k.csv",
+    "Amazon Review Datasets/Video_games_trunc_70k.csv",
+    "Amazon Review Datasets/Video_games_trunc_60k.csv",
+    "Amazon Review Datasets/Video_games_trunc_50k.csv",
+    "Amazon Review Datasets/Video_games_trunc_40k.csv",
+    "Amazon Review Datasets/Video_games_trunc_30k.csv",
+    "Amazon Review Datasets/Video_games_trunc_20k.csv",
+    "Amazon Review Datasets/Video_games_trunc_10k.csv"
+]
+'''
+video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
+#video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
+kitchen_data = ["Amazon Review Datasets/kitchen_truncated.csv"]
+
 ###############################################################
 # BEGIN CONFIGURATION SETUP 
 ###############################################################
+
+#features being selected
+testing_options = ["combined"]
+selected_dataset = video_game_data
+selected_classifiers = ["nb"]
+testing_types = ["catagories"]
+
+plot_confusion_matrix = False
+record_results = True
+
+#use all options
+use_all_options = False
+use_all_classifiers = False
+use_all_types = False
+
+
+#############################################################
+#Possible Options
+#############################################################
+
 def findClassifier (classifier_name):
     for element in classifiers:
         if element[0] == classifier_name:
@@ -40,16 +82,13 @@ classifiers = [
 #scoring metrics
 scoringMetrics = ['precision_macro', 'recall_macro', 'f1_macro']
 
-#possible csv
-video_game_data = "Amazon Review Datasets/video_games_truncated.csv"
-#video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
-kitchen_data = "Amazon Review Datasets/kitchen_truncated.csv"
+
 
 #possible options
 options = [
     "review_headline",
-    #"review_body"
-    #"combined"
+    "review_body",
+    "combined"
 ]
 
 #possible types of classification
@@ -60,20 +99,6 @@ catagory_types = [
 
 #possible labels
 star_label = "star_rating"
-
-#features being selected
-testing_options = ["review_headline"]
-testing_labels = star_label
-selected_dataset = video_game_data
-selected_classifiers = ["nb"]
-testing_types = ["catagories"]
-
-plot_confusion_matrix = False
-
-#use all options
-use_all_options = False
-use_all_classifiers = False
-use_all_types = False
 
 
 ############################################################
@@ -97,7 +122,7 @@ def getTestingClassifiers():
     return testing_classifiers
 
 def getTestingOptions():
-    return options
+    return testing_options
 
 def getTestingTypes():
     return testing_types
@@ -110,3 +135,6 @@ def getPlotSetting():
 
 def getScoringMetrics():
     return scoringMetrics
+
+def getRecordingSetting():
+    return record_results

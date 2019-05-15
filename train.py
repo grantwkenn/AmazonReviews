@@ -9,6 +9,7 @@ import scikitplot
 import statistics
 import string
 import time
+import resultWriter
 
 from imblearn.under_sampling import RandomUnderSampler
 from scipy.sparse import coo_matrix, hstack
@@ -35,8 +36,8 @@ from sklearn.svm import NuSVC
 from sklearn.tree import DecisionTreeClassifier
 
 
-def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix):
-    
+
+def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults):
     #####################################
     # Setup Data
     #####################################
@@ -104,37 +105,40 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("giveaway", FunctionFeaturizer(giveaway)),
         #('capitalization', FunctionFeaturizer(capitalizationRatio)),
-        ("dots", FunctionFeaturizer(dots)),
+        #("dots", FunctionFeaturizer(dots)),
         #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
         ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
     ])
 
     # union of features on body
     bodyUnion = FeatureUnion([
-        ("emojis", FunctionFeaturizer(emojis)), 
-        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-        ("question", FunctionFeaturizer(question)),
-        ("capitalization", FunctionFeaturizer(capitalizationRatio)),
+        #("emojis", FunctionFeaturizer(emojis)), 
+        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        #("question", FunctionFeaturizer(question)),
+        #("capitalization", FunctionFeaturizer(capitalizationRatio)),
         #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
         ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
  
     featureTransformers = [
-        ("body_union", bodyUnion, "review_body"),
+        #("body_union", bodyUnion, "review_body"),
+        #("union", headUnion, "review_headline"),
+
         ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
-        ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
-        ("vine", FunctionTransformer(validate=False), ["vine"])
+        #("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
+        #("vine", FunctionTransformer(validate=False), ["vine"])
         #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
     ]
-
+    headline_transformer = ("headUnion", headUnion, "review_headline")
+    body_transformer = ("bodyUnion", bodyUnion, "review_body")
+    
     if( testingOption == "review_headline" or testingOption == "combined"):
-        featureTransformers.extend( [("union", headUnion, "review_headline")] )
+        featureTransformers.extend( [headline_transformer] )
 
     if(testingOption == "review_body" or testingOption == "combined"):
-       featureTransformers.extend( [("union", headUnion, "review_headline")] ) 
+       featureTransformers.extend( [body_transformer] ) 
 
-    print (featureTransformers)
     #join all transformers column-wise
     ct = ColumnTransformer( featureTransformers )
     # fit & transorm the data
@@ -151,18 +155,20 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     elapsed_time = round(finish_time-start_time, 1)
 
     #Performance Metrics: f1, Precision, Recall
-    avgf1 = round(statistics.mean(scores['test_f1_macro']), 3)
-    avgprec = round(statistics.mean(scores['test_precision_macro']), 3)
-    avgrecall = round(statistics.mean(scores['test_recall_macro']), 3)
+    averageF1 = round(statistics.mean(scores['test_f1_macro']), 3)
+    averagePrecision = round(statistics.mean(scores['test_precision_macro']), 3)
+    averageRecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
-    print(datetime.datetime.now())
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
-    print( "Precision Score: " + str(avgprec))
-    print( "Recall Score: " + str(avgrecall))
-    print( "f1 Score: " + str(avgf1))
-    print( "Elapsed Time: " + str(elapsed_time) + " seconds")
+    #print(datetime.datetime.now())
+    #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
+    #print( "Precision Score: " + str(averagePrecision))
+    #print( "Recall Score: " + str(averageRecall))
+    #print( "f1 Score: " + str(averageF1))
+    #print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
 
+    if isRecordingResults:
+        resultWriter.writeResults("Results/Amazon_Review_Results", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, selectedDataset, elapsed_time  )
 
     if isPlottingConfusionMatrix:
         imageLabel = selectedDataset + classifier_name + testingOption + ".png"
