@@ -104,8 +104,9 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         #("giveaway", FunctionFeaturizer(giveaway)),
         #('capitalization', FunctionFeaturizer(capitalizationRatio)),
-        #("dots", FunctionFeaturizer(dots)),
-        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
+        ("dots", FunctionFeaturizer(dots)),
+        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
     ])
 
     # union of features on body
@@ -114,20 +115,12 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ("question", FunctionFeaturizer(question)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
+        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
     ])
 
-    optionalTransformers = []
-    #if( testingOption == "review_headline" or testingOption == "combined"):
-   #     optionalTransformers = optionalTransformers.append(headlineTransformer)
-
-    #if(testingOption == "review_body" or testingOption == "combined"):
-     #  optionalTransformers = optionalTransformers.append(bodyTransformer)
-    #feature transformers being used
-
+ 
     featureTransformers = [
-        #optionalTransformers,
-        ("union", headUnion, "review_headline"),
         ("body_union", bodyUnion, "review_body"),
         ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
         ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
@@ -135,15 +128,13 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
     ]
 
-    headlineTransformer = ("union", headUnion, "review_headline")
-    bodyTransformer = ("body_union", bodyUnion, "review_body")
+    if( testingOption == "review_headline" or testingOption == "combined"):
+        featureTransformers.extend( [("union", headUnion, "review_headline")] )
 
-    #if( testingOption == "review_headline" or testingOption == "combined"):
-     #   featureTransformers = featureTransformers.append(headlineTransformer)
+    if(testingOption == "review_body" or testingOption == "combined"):
+       featureTransformers.extend( [("union", headUnion, "review_headline")] ) 
 
-   # if(testingOption == "review_body" or testingOption == "combined"):
-    #   featureTransformers = featureTransformers.append(bodyTransformer)
-
+    print (featureTransformers)
     #join all transformers column-wise
     ct = ColumnTransformer( featureTransformers )
     # fit & transorm the data
