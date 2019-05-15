@@ -10,18 +10,18 @@ from sklearn.svm import SVC, NuSVC
 
 video_game_data = [
    # "Amazon Review Datasets/video_games_truncated.csv",
-    "Amazon Review Datasets/Video_games_trunc_500k.csv",
-    "Amazon Review Datasets/Video_games_trunc_250k.csv",
-    "Amazon Review Datasets/Video_games_trunc_100k.csv",
-    "Amazon Review Datasets/Video_games_trunc_90k.csv",
-    "Amazon Review Datasets/Video_games_trunc_80k.csv",
-    "Amazon Review Datasets/Video_games_trunc_70k.csv",
-    "Amazon Review Datasets/Video_games_trunc_60k.csv",
-    "Amazon Review Datasets/Video_games_trunc_50k.csv",
-    "Amazon Review Datasets/Video_games_trunc_40k.csv",
-    "Amazon Review Datasets/Video_games_trunc_30k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_500k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_250k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_100k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_90k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_80k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_70k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_60k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_50k.csv",
+   # #"Amazon Review Datasets/Video_games_trunc_40k.csv",
+    "Amazon Review Datasets/Video_games_trunc_10k.csv",
     "Amazon Review Datasets/Video_games_trunc_20k.csv",
-    "Amazon Review Datasets/Video_games_trunc_10k.csv"
+    "Amazon Review Datasets/Video_games_trunc_30k.csv",
 ]
 
 #video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
@@ -34,17 +34,17 @@ kitchen_data = ["Amazon Review Datasets/kitchen_truncated.csv"]
 
 #features being selected
 testing_options = ["combined"]
-selected_dataset = ["Amazon Review Datasets/video_games_truncated.csv"]
-selected_classifiers = ["decision_tree"]
+selected_dataset = video_game_data
+selected_classifiers = ["nb"]
 testing_types = ["catagories"]
 
 plot_confusion_matrix = False
 record_results = True
 
 #use all options
-use_all_options = False
-use_all_classifiers = False
-use_all_types = False
+use_all_options = True
+use_all_classifiers = True
+use_all_types = True
 
 
 #############################################################
@@ -69,8 +69,8 @@ votingClassifier = VotingClassifier(estimators= [
 
 classifiers = [
     ("nu_svc" , NuSVC(gamma = 'auto')),
-    ("svc" , SVC(gamma = 'auto') ),
-    ("svc2" , SVC(kernel="linear", C=0.025)),
+    #("svc" , SVC(gamma = 'auto') ),
+    ("svc" , SVC(kernel="linear", C=0.025)),
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
     #("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
     #("mlp" , MLPClassifier(alpha=1)),

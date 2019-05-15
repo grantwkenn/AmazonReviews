@@ -16,7 +16,7 @@ isRecordingResults = configuration.getRecordingSetting()
 # RUN
 #########################################################
 for dataFile in selectedDataset:
-    for classifier in testingClassifiers:
-        for option in testingOptions:
-            for dataType in testingTypes:
-                train.testDataset( classifier, option, dataType, dataFile, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults)
+    for dataType in testingTypes:
+        for classifier in testingClassifiers:
+            for option in testingOptions:
+                    train.testDataset( classifier, option, dataType, dataFile, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults)

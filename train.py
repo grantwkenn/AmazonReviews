@@ -160,11 +160,11 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     averageRecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
     #print(datetime.datetime.now())
-    #print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
+    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
     #print( "Precision Score: " + str(averagePrecision))
     #print( "Recall Score: " + str(averageRecall))
-    #print( "f1 Score: " + str(averageF1))
-    #print( "Elapsed Time: " + str(elapsed_time) + " seconds")
+    print( "f1 Score: " + str(averageF1))
+    print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
 
     if isRecordingResults:
@@ -217,7 +217,7 @@ def length(text):
     return len(text)
 
 def capitalizationRatio(text):
-    return len(re.findall("[A-Z]", text))
+    return len(re.findall(r"[A-Z]", text)) / len(text)
 
 def question(text):
     return len(re.findall("\?", text))
