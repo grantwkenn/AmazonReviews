@@ -7,9 +7,9 @@ from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.svm import SVC, NuSVC
 
 #possible csv
-'''
+
 video_game_data = [
-    "Amazon Review Datasets/video_games_truncated.csv",
+   # "Amazon Review Datasets/video_games_truncated.csv",
     "Amazon Review Datasets/Video_games_trunc_500k.csv",
     "Amazon Review Datasets/Video_games_trunc_250k.csv",
     "Amazon Review Datasets/Video_games_trunc_100k.csv",
@@ -23,8 +23,8 @@ video_game_data = [
     "Amazon Review Datasets/Video_games_trunc_20k.csv",
     "Amazon Review Datasets/Video_games_trunc_10k.csv"
 ]
-'''
-video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
+
+#video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
 #video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
 kitchen_data = ["Amazon Review Datasets/kitchen_truncated.csv"]
 
@@ -34,8 +34,8 @@ kitchen_data = ["Amazon Review Datasets/kitchen_truncated.csv"]
 
 #features being selected
 testing_options = ["combined"]
-selected_dataset = video_game_data
-selected_classifiers = ["nb"]
+selected_dataset = ["Amazon Review Datasets/video_games_truncated.csv"]
+selected_classifiers = ["decision_tree"]
 testing_types = ["catagories"]
 
 plot_confusion_matrix = False
@@ -72,10 +72,10 @@ classifiers = [
     ("svc" , SVC(gamma = 'auto') ),
     ("svc2" , SVC(kernel="linear", C=0.025)),
     ("decision_tree" , DecisionTreeClassifier(max_depth=5)),
-    ("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
-    ("mlp" , MLPClassifier(alpha=1)),
+    #("random_forest" , RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1)),
+    #("mlp" , MLPClassifier(alpha=1)),
     ("nb" , MultinomialNB()),
-    ("votingClassifier", votingClassifier)
+    #("votingClassifier", votingClassifier)
 ]
 
 

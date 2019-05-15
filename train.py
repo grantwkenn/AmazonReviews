@@ -168,7 +168,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
 
 
     if isRecordingResults:
-        resultWriter.writeResults("Results/Amazon_Review_Results", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, selectedDataset, elapsed_time  )
+        resultWriter.writeResults("Results/Amazon_Review_Results.csv", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, selectedDataset, elapsed_time  )
 
     if isPlottingConfusionMatrix:
         imageLabel = selectedDataset + classifier_name + testingOption + ".png"
