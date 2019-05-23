@@ -119,7 +119,6 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     headUnion = FeatureUnion([ 
         ("emojis", FunctionFeaturizer(emojis)), # no effect
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-        ("giveaway", FunctionFeaturizer(giveaway)), #adds .653 -> .655 40k svc
         ('capitalization', FunctionFeaturizer(capitalizationRatio)),
         #("dots", FunctionFeaturizer(dots)),
         ("vectorizer", CountVectorizer(token_pattern=r'\b\w+\b', ngram_range=(1,2)))
@@ -227,11 +226,6 @@ def capitalizationRatio(text):
 
 def question(text):
     return len(re.findall("\?", text))
-
-def giveaway(text):
-    if(len(re.findall("Five Star", text))>0): return 2
-    if(len(re.findall("One Star", text))>0): return 0
-    return 1
 
 
 
