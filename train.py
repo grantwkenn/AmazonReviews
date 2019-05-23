@@ -63,7 +63,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         "vine": input_data["vine"].values,
         "helpful_votes": input_data["helpful_votes"].values,
         "total_votes": input_data["total_votes"].values,
-        "verified_purchase": input_data["verified_purchase"].values,
+        "verified_purchase": input_data["verified_purchase"].values
         }
     dataset = pd.DataFrame(data = dataset)
     dataset = dataset.dropna() #drop missing values
@@ -78,9 +78,22 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         dataset["label"] = dataset["star_rating"] # star classification
 
     #This line omits 3 star reviews
-    #dataset = dataset[dataset.star_rating != 3]
+    dataset = dataset[dataset.star_rating != 3]
 
-    tableFields = ["review_headline", "review_body", "star_rating", 
+    fives = len(dataset[dataset.star_rating == 5])
+    fours = len(dataset[dataset.star_rating == 4])
+    threes = len(dataset[dataset.star_rating == 3])
+    twos = len(dataset[dataset.star_rating == 2])
+    ones = len(dataset[dataset.star_rating == 1])
+
+    print("5: " + str(fives))
+    print("4: " + str(fours))
+    print("3: " + str(threes))
+    print("2: " + str(twos))
+    print("1: " + str(ones))
+
+
+    tableFields = ["star_rating", "review_headline", "review_body", "star_rating", 
                 "helpful_votes", "total_votes", "vine", "verified_purchase"]
     X = pd.DataFrame(dataset, columns = tableFields)
     y = pd.DataFrame(dataset, columns = ["label"])
@@ -89,9 +102,10 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     # Random Undersampling
     #####################################
     #print("\nDataset size before RUS: " + str(len(X)) + "\n")
-
+    
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
+
     X = pd.DataFrame(X, columns = tableFields)
 
     datasetSize = X.shape[0]
@@ -103,48 +117,36 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
 
     # union of features on headline
     headUnion = FeatureUnion([ 
-        #("emojis", FunctionFeaturizer(emojis)), # no effect
-        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-        #("giveaway", FunctionFeaturizer(giveaway)),
-        #('capitalization', FunctionFeaturizer(capitalizationRatio)),
+        ("emojis", FunctionFeaturizer(emojis)), # no effect
+        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        ("giveaway", FunctionFeaturizer(giveaway)), #adds .653 -> .655 40k svc
+        ('capitalization', FunctionFeaturizer(capitalizationRatio)),
         #("dots", FunctionFeaturizer(dots)),
-        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
-        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,5)))
-        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        ("vectorizer", CountVectorizer(token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        #("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
     ])
 
     # union of features on body
     bodyUnion = FeatureUnion([
-        #("emojis", FunctionFeaturizer(emojis)), 
-        #("count_exclamation_mark", FunctionFeaturizer(exclamation)),
-        #("question", FunctionFeaturizer(question)),
-        #("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
-        #("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,3)))
-        ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b'))
+        ("emojis", FunctionFeaturizer(emojis)), 
+        ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
+        ("capitalization", FunctionFeaturizer(capitalizationRatio)),
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
     ])
 
  
-    featureTransformers = [
-        #("body_union", bodyUnion, "review_body"),
-        #("union", headUnion, "review_headline"),
-
+    ct = ColumnTransformer([
+        ("body_union", bodyUnion, "review_body"),
+        ("head_union", headUnion, "review_headline"),
         ("helpvotes", FunctionTransformer(validate=False), ["helpful_votes"]), #helps on nu_svc
-        #("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
-        #("vine", FunctionTransformer(validate=False), ["vine"])
-        #("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
-    ]
-    headline_transformer = ("headUnion", headUnion, "review_headline")
-    body_transformer = ("bodyUnion", bodyUnion, "review_body")
-    
-    if( testingOption == "review_headline" or testingOption == "combined"):
-        featureTransformers.extend( [headline_transformer] )
+        ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
+        ("vine", FunctionTransformer(validate=False), ["vine"]),
+        ("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
 
-    if(testingOption == "review_body" or testingOption == "combined"):
-       featureTransformers.extend( [body_transformer] ) 
+    ])
 
     #join all transformers column-wise
-    ct = ColumnTransformer( featureTransformers )
+    
     # fit & transorm the data
     X = ct.fit_transform(X)
     
@@ -152,7 +154,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     ## Training with cross validation
     #####################################
 
-    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=5, return_train_score=True)
+    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=10, n_jobs = -1, return_train_score=True)
 
     #stop the clock, compute runtime
     finish_time = time.time()
@@ -163,10 +165,10 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     averagePrecision = round(statistics.mean(scores['test_precision_macro']), 3)
     averageRecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
-    #print(datetime.datetime.now())
+    print(datetime.datetime.now())
     print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
-    #print( "Precision Score: " + str(averagePrecision))
-    #print( "Recall Score: " + str(averageRecall))
+    print( "Precision Score: " + str(averagePrecision))
+    print( "Recall Score: " + str(averageRecall))
     print( "f1 Score: " + str(averageF1))
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
@@ -179,7 +181,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         plotConfusionMatrix(classifier, X, y, imageLabel )
 
 def plotConfusionMatrix(classifier, test_vector, test_y, label):
-    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 10)
+    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 10, n_jobs = -1)
     scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
     matplotlib.pyplot.savefig(label) ##add timestamp to title to preserve multiples
     matplotlib.pyplot.show()
@@ -203,8 +205,8 @@ def caps(text):
 def emojis(text):
     sadface = len(re.findall(":\(", text)) + len(re.findall("\):", text)) + len(re.findall(":'\(", text)) + len(re.findall("\)':", text))
     happyface = len(re.findall(":\)", text)) + len(re.findall("\(:", text)) + len(re.findall(":D", text)) + len(re.findall("XD", text)) + len(re.findall(":3", text))
-    if sadface > happyface: return sadface
-    return happyface
+    if sadface > happyface: return 0
+    return 1
 
 
 def exclamation(text):
@@ -227,9 +229,11 @@ def question(text):
     return len(re.findall("\?", text))
 
 def giveaway(text):
-    if (text == "Five Stars" or text == "five stars") : return 1
-    if (text == "One Star" or text == "one star"): return 0
+    if(len(re.findall("Five Star", text))>0): return 2
+    if(len(re.findall("One Star", text))>0): return 0
     return 1
+
+
 
 # The FunctionFeaturizer implements a transformer which can be used in a Feature Union pipeline.
 # It allows you to specify the function with which to transform the data, and applies
