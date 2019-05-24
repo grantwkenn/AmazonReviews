@@ -133,7 +133,6 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     averagePrecision = round(statistics.mean(scores['test_precision_macro']), 3)
     averageRecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
-    print(datetime.datetime.now())
     print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(averagePrecision))
     print( "Recall Score: " + str(averageRecall))
@@ -145,7 +144,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         resultWriter.writeResults("Results/Amazon_Review_Results.csv", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, datasetSize, selectedDataset, elapsed_time  )
 
     if isPlottingConfusionMatrix:
-        imageLabel = selectedDataset + classifier_name + testingOption + ".png"
+        imageLabel = "Results/" + classifier_name + testingOption + str(finish_time) + ".png"
         plotConfusionMatrix(classifier, X, y, imageLabel )
 
 def plotConfusionMatrix(classifier, test_vector, test_y, label):
