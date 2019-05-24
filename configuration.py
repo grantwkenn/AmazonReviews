@@ -11,43 +11,38 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 #possible csv
 
 video_game_data = [
-   # "Amazon Review Datasets/video_games_truncated.csv",
-   #"Amazon Review Datasets/amazon_reviews_Video_Games.csv"
-  #  "Amazon Review Datasets/Video_games_trunc_500k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_250k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_100k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_90k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_80k.csv",
+  "Amazon Review Datasets/Video_games_trunc_10k.csv",
+   #"Amazon Review Datasets/Video_games_trunc_20k.csv",
+   #"Amazon Review Datasets/Video_games_trunc_30k.csv",
+   #"Amazon Review Datasets/Video_games_trunc_40k.csv",
+   #"Amazon Review Datasets/Video_games_trunc_50k.csv",
+   #"Amazon Review Datasets/Video_games_trunc_60k.csv",
    # "Amazon Review Datasets/Video_games_trunc_70k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_60k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_50k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_40k.csv",
-    "Amazon Review Datasets/Video_games_trunc_10k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_20k.csv",
-   # "Amazon Review Datasets/Video_games_trunc_30k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_80k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_90k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_100k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_250k.csv",
+   # "Amazon Review Datasets/Video_games_trunc_500k.csv",
+   # "Amazon Review Datasets/amazon_reviews_Video_Games.csv"
 ]
-
-#video_game_data = [ "Amazon Review Datasets/video_games_truncated.csv" ]
-#video_game_data = "Amazon Review Datasets/vg_trunc_90k.csv"
-kitchen_data = ["Amazon Review Datasets/kitchen_truncated.csv"]
 
 ###############################################################
 # BEGIN CONFIGURATION SETUP 
 ###############################################################
 
 #features being selected
-testing_options = ["combined"]
-selected_dataset = video_game_data
-selected_classifiers = ["nb"]
-testing_types = ["catagories"]
+testing_options = ["combined"]  #headline, body, or combined
+selected_dataset = video_game_data #dataset 
+selected_classifiers = ["nb"] #selected classifier, optionsbelow
+testing_types = ["catagories"] #catagories or boolean
 
-plot_confusion_matrix = False
-record_results = True
+plot_confusion_matrix = False  #option to plot confusionmatrix
+record_results = True #option to record results to csv
 
 #use all options
-use_all_options = False
-use_all_classifiers = False
-use_all_types = False
+use_all_options = False #use body, headline, and combined
+use_all_classifiers = False #use all classifiers in the classifiers section below
+use_all_types = False #use both boolean and 5 star categories
 
 #headline vectorizer options
 #choose one!
@@ -89,11 +84,8 @@ classifiers = [
     #("votingClassifier", votingClassifier)
 ]
 
-
 #scoring metrics
 scoringMetrics = ['precision_macro', 'recall_macro', 'f1_macro']
-
-
 
 #possible options
 options = [
@@ -110,7 +102,6 @@ catagory_types = [
 
 #possible labels
 star_label = "star_rating"
-
 
 ############################################################
 # END CONFIGURATION SET UP

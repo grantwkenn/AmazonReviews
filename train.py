@@ -18,24 +18,15 @@ from sklearn.base import TransformerMixin
 from sklearn.compose import ColumnTransformer
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import recall_score
-from sklearn.model_selection import cross_validate
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import cross_val_predict
-from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import cross_validate, train_test_split, cross_val_score, cross_val_predict
+from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.neural_network import MLPClassifier
-from sklearn.pipeline import Pipeline, FeatureUnion
-from sklearn.pipeline import FeatureUnion
-from sklearn.svm import SVC
-from sklearn.svm import NuSVC
+from sklearn.pipeline import Pipeline, FeatureUnion, FeatureUnion
+from sklearn.svm import SVC, NuSVC
 from sklearn.tree import DecisionTreeClassifier
-
-
 
 def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults):
     #####################################
@@ -87,17 +78,12 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
 
     #####################################
     # Random Undersampling
-    #####################################
-    #print("\nDataset size before RUS: " + str(len(X)) + "\n")
-    
+    #####################################    
     rus = RandomUnderSampler(random_state=13)
     X, y = rus.fit_resample(X, y)
-
     X = pd.DataFrame(X, columns = tableFields)
-
     datasetSize = X.shape[0]
 
-    #print("\nDataset size after RUS: " + str(len(X)) + "\n")
     #####################################
     # Vectorization / Feature Extraction
     #####################################
@@ -119,8 +105,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         configuration.getBodyVectorizer()
     ])
 
- 
- 
+    #join all transformers column-wise
     ct = ColumnTransformer([
         ("body_union", bodyUnion, "review_body"),
         ("head_union", headUnion, "review_headline"),
@@ -128,11 +113,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("totalvotes", FunctionTransformer(validate=False), ["total_votes"]), #helps on nu_svc
         ("vine", FunctionTransformer(validate=False), ["vine"]),
         ("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
-
     ])
 
-    #join all transformers column-wise
-    
     # fit & transorm the data
     X = ct.fit_transform(X)
     
