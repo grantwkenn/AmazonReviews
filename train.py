@@ -130,7 +130,8 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("emojis", FunctionFeaturizer(emojis)), 
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2))),
+        ("vectorizer", TfidfVectorizer(token_pattern=r'\b\w+\b'))
     ])
 
  
