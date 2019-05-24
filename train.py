@@ -28,7 +28,7 @@ from sklearn.pipeline import Pipeline, FeatureUnion, FeatureUnion
 from sklearn.svm import SVC, NuSVC
 from sklearn.tree import DecisionTreeClassifier
 
-def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults):
+def testDataset(classifier, dataType, selectedDataset, scoringMetrics, isPlottingConfusionMatrix, isRecordingResults):
     #####################################
     # Setup Data
     #####################################
@@ -69,7 +69,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         dataset["label"] = dataset["star_rating"] # star classification
 
     #This line omits 3 star reviews
-    dataset = dataset[dataset.star_rating != 3]
+    #dataset = dataset[dataset.star_rating != 3]
 
     tableFields = ["star_rating", "review_headline", "review_body", "star_rating", 
                 "helpful_votes", "total_votes", "vine", "verified_purchase"]
@@ -115,6 +115,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("verified_purchase", FunctionTransformer(validate=False), ["verified_purchase"])
     ])
 
+
     # fit & transorm the data
     X = ct.fit_transform(X)
     
@@ -122,7 +123,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     ## Training with cross validation
     #####################################
 
-    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=10, n_jobs = -1, return_train_score=True)
+    scores = cross_validate(classifier, X, y.ravel(), scoring=scoringMetrics, cv=5, n_jobs = -1, return_train_score=True)
 
     #stop the clock, compute runtime
     finish_time = time.time()
@@ -133,22 +134,22 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     averagePrecision = round(statistics.mean(scores['test_precision_macro']), 3)
     averageRecall = round(statistics.mean(scores['test_recall_macro']), 3)
 
-    print( "Classifier: " + classifier_name + "\tTesting Feature: " + testingOption + "\tIs Binary: " + str(binary_classification))
+    print(datetime.datetime.now())
+    print( "Classifier: " + classifier_name + "\tIs Binary: " + str(binary_classification))
     print( "Precision Score: " + str(averagePrecision))
     print( "Recall Score: " + str(averageRecall))
     print( "f1 Score: " + str(averageF1))
     print( "Elapsed Time: " + str(elapsed_time) + " seconds")
 
-
     if isRecordingResults:
-        resultWriter.writeResults("Results/Amazon_Review_Results.csv", testingOption, classifier_name, dataType, averagePrecision, averageRecall, averageF1, datasetSize, selectedDataset, elapsed_time  )
-
+        resultWriter.writeResults("Results/Amazon_Review_Results.csv", classifier_name, dataType, averagePrecision, averageRecall, averageF1, datasetSize, selectedDataset, elapsed_time  )
+    
     if isPlottingConfusionMatrix:
-        imageLabel = "Results/" + classifier_name + testingOption + str(finish_time) + ".png"
+        imageLabel = "Results/" + classifier_name + dataType + str(finish_time) + ".png"
         plotConfusionMatrix(classifier, X, y, imageLabel )
 
 def plotConfusionMatrix(classifier, test_vector, test_y, label):
-    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 10, n_jobs = -1)
+    predictions = cross_val_predict(classifier, test_vector, test_y.ravel(), cv = 5, n_jobs = -1)
     scikitplot.metrics.plot_confusion_matrix( test_y.ravel(), predictions, normalize=True)
     matplotlib.pyplot.savefig(label) ##add timestamp to title to preserve multiples
     matplotlib.pyplot.show()
@@ -174,7 +175,6 @@ def emojis(text):
     happyface = len(re.findall(":\)", text)) + len(re.findall("\(:", text)) + len(re.findall(":D", text)) + len(re.findall("XD", text)) + len(re.findall(":3", text))
     if sadface > happyface: return 0
     return 1
-
 
 def exclamation(text):
     return len(re.findall("!", text))

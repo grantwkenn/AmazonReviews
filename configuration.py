@@ -31,16 +31,14 @@ video_game_data = [
 ###############################################################
 
 #features being selected
-testing_options = ["combined"]  #headline, body, or combined
 selected_dataset = video_game_data #dataset 
 selected_classifiers = ["nb"] #selected classifier, optionsbelow
-testing_types = ["catagories"] #catagories or boolean
+testing_types = ["categories"] #catagories or boolean
 
 plot_confusion_matrix = False  #option to plot confusionmatrix
 record_results = True #option to record results to csv
 
 #use all options
-use_all_options = False #use body, headline, and combined
 use_all_classifiers = False #use all classifiers in the classifiers section below
 use_all_types = False #use both boolean and 5 star categories
 
@@ -111,9 +109,6 @@ testing_classifiers = []
 for classifier in selected_classifiers:
     testing_classifiers.append(findClassifier(classifier))
 
-if use_all_options:
-    testing_options = options
-
 if use_all_classifiers:
     testing_classifiers = classifiers
 
@@ -122,9 +117,6 @@ if use_all_types:
 
 def getTestingClassifiers():
     return testing_classifiers
-
-def getTestingOptions():
-    return testing_options
 
 def getTestingTypes():
     return testing_types
@@ -142,7 +134,7 @@ def getRecordingSetting():
     return record_results
 
 def getHeadlineVectorizer():
-    return headlineVectorizer;
+    return headlineVectorizer
 
 def getBodyVectorizer():
-    return bodyVectorizer;
+    return bodyVectorizer
