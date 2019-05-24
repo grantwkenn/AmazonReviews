@@ -5,6 +5,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingClassifier
 from sklearn.naive_bayes import GaussianNB, MultinomialNB
 from sklearn.svm import SVC, NuSVC
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+
 
 #possible csv
 
@@ -47,6 +49,14 @@ use_all_options = False
 use_all_classifiers = False
 use_all_types = False
 
+#headline vectorizer options
+#choose one!
+headlineVectorizer = ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+#headlineVectorizer = ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+
+#body vectorizer options
+bodyVectorizer = ("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', stop_words="english"))
+#bodyVectorizer = ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', stop_words="english", ngram_range=(1,2)))
 
 #############################################################
 #Possible Options
@@ -139,3 +149,9 @@ def getScoringMetrics():
 
 def getRecordingSetting():
     return record_results
+
+def getHeadlineVectorizer():
+    return headlineVectorizer;
+
+def getBodyVectorizer():
+    return bodyVectorizer;

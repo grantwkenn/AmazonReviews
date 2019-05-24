@@ -80,19 +80,6 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
     #This line omits 3 star reviews
     dataset = dataset[dataset.star_rating != 3]
 
-    fives = len(dataset[dataset.star_rating == 5])
-    fours = len(dataset[dataset.star_rating == 4])
-    threes = len(dataset[dataset.star_rating == 3])
-    twos = len(dataset[dataset.star_rating == 2])
-    ones = len(dataset[dataset.star_rating == 1])
-
-    print("5: " + str(fives))
-    print("4: " + str(fours))
-    print("3: " + str(threes))
-    print("2: " + str(twos))
-    print("1: " + str(ones))
-
-
     tableFields = ["star_rating", "review_headline", "review_body", "star_rating", 
                 "helpful_votes", "total_votes", "vine", "verified_purchase"]
     X = pd.DataFrame(dataset, columns = tableFields)
@@ -121,8 +108,7 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ('capitalization', FunctionFeaturizer(capitalizationRatio)),
         #("dots", FunctionFeaturizer(dots)),
-        ("vectorizer", CountVectorizer(token_pattern=r'\b\w+\b', ngram_range=(1,2)))
-        #("vectorizer", TfidfVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2)))
+        configuration.getHeadlineVectorizer()
     ])
 
     # union of features on body
@@ -130,10 +116,10 @@ def testDataset(classifier, testingOption, dataType, selectedDataset, scoringMet
         ("emojis", FunctionFeaturizer(emojis)), 
         ("count_exclamation_mark", FunctionFeaturizer(exclamation)),
         ("capitalization", FunctionFeaturizer(capitalizationRatio)),
-        ("vectorizer", CountVectorizer( token_pattern=r'\b\w+\b', ngram_range=(1,2))),
-        ("vectorizer", TfidfVectorizer(token_pattern=r'\b\w+\b'))
+        configuration.getBodyVectorizer()
     ])
 
+ 
  
     ct = ColumnTransformer([
         ("body_union", bodyUnion, "review_body"),
@@ -227,8 +213,6 @@ def capitalizationRatio(text):
 
 def question(text):
     return len(re.findall("\?", text))
-
-
 
 # The FunctionFeaturizer implements a transformer which can be used in a Feature Union pipeline.
 # It allows you to specify the function with which to transform the data, and applies
